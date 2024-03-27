@@ -5,8 +5,13 @@ var jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { Auth } = require("./Authentication/Auth");
 const { UserModel } = require("./Models/UserModel");
+var cors=require('cors');
 
 const app = express();
+app.use(cors({
+  origin : "*"
+}))
+
 app.use(express.json());
 
 app.get("/", (req, res) => {
