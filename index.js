@@ -61,27 +61,27 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// .................................................................................
-
 app.get("/user", Auth, async (req, res) => {
   const { search, sortby, page, limit, order, completed } = req.query;
+  const author_id = req.user_id;
+
 
   let pageno = parseInt(page) || 1;
   let limitperpage = parseInt(limit) || 10;
   let skip = (pageno - 1) * limitperpage;
 
   try {
-    let user;
-    let query = {};
+    let filter = { user_id: author_id }; 
 
     if (search) {
-      const regexp = new RegExp(search, "i");
-      query.title = regexp;
+      filter.title = { $regex: search, $options: "i" }; 
     }
+
+    let query = UserModel.find(filter); 
 
     // Add filtering based on task completion
     if (completed !== undefined && completed !== '') {
-      query.completed = completed === 'true'; // Convert string to boolean
+      query = query.where('completed').equals(completed === 'true'); // Convert string to boolean and filter by completion status
     }
 
     let sortquery = {};
@@ -93,12 +93,13 @@ app.get("/user", Auth, async (req, res) => {
       sortquery.createdAt = -1; // Descending order by default
     }
 
-    user = await UserModel.find(query)
+    const user = await query
       .sort(sortquery)
       .skip(skip)
-      .limit(limitperpage);
+      .limit(limitperpage)
+      .exec();
 
-    const total = await UserModel.countDocuments(query);
+    const total = await UserModel.countDocuments(filter);
 
     res.json({
       total,
@@ -111,12 +112,9 @@ app.get("/user", Auth, async (req, res) => {
   }
 });
 
+
 app.post("/user/create", Auth, async (req, res) => {
   const { title, completed, description } = req.body;
-
-  // if (!title || !completed || !description) {
-  //   return res.status(400).json({ error: "Title, completed, and description are required" });
-  // }
 
   const author_id = req.user_id;
   const user = await SignUpModel.findOne({ _id: author_id });
