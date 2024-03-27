@@ -114,9 +114,9 @@ app.get("/user", Auth, async (req, res) => {
 app.post("/user/create", Auth, async (req, res) => {
   const { title, completed, description } = req.body;
 
-  if (!title || !completed || !description) {
-    return res.status(400).json({ error: "Title, completed, and description are required" });
-  }
+  // if (!title || !completed || !description) {
+  //   return res.status(400).json({ error: "Title, completed, and description are required" });
+  // }
 
   const author_id = req.user_id;
   const user = await SignUpModel.findOne({ _id: author_id });
